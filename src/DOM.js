@@ -81,10 +81,11 @@ function generateTodoCards(project) {
         const card = document.createElement('div')
         const cardTitle = document.createElement('p')
         const priority = document.createElement('div')
-        const delBtn = document.createElement('button')
+        const done = document.createElement('div')
 
         cardTitle.textContent = `${todo.title} - ${format(todo.dueDate, 'yyyy-MM-dd')}`
 
+        priority.classList.add('card-circle')
         switch (todo.priority) {
             case 'low':
                 priority.classList.add('low-priority')
@@ -97,15 +98,15 @@ function generateTodoCards(project) {
                 break;
         }
 
-        delBtn.textContent = 'X'
-        delBtn.addEventListener('click', () => {
-            project.remove(index)
-            database.saveProject(project)
-            todosDOM.updateTodoList()
-        })
+        done.classList.add('card-circle')
+        if (todo.done === 'true'){
+            done.classList.add('done')
+        } else {
+            done.classList.add('notDone')
+        }
 
         card.addEventListener('click', () => {
-            document.body.appendChild(generateTodoModal(todo))
+            document.body.appendChild(generateTodoModal(todo, index))
             document.querySelector('dialog').showModal()
         })
 
@@ -113,14 +114,14 @@ function generateTodoCards(project) {
 
         card.appendChild(cardTitle)
         card.appendChild(priority)
-        card.appendChild(delBtn)
+        card.appendChild(done)
 
         projectTodos.appendChild(card)
     })
 
 }
 
-function generateTodoModal(todo) {
+function generateTodoModal(todo, index) {
     const dialog = document.createElement('dialog')
     const form = document.createElement('form')
     const fieldset = document.createElement('fieldset')
@@ -141,9 +142,11 @@ function generateTodoModal(todo) {
     const inputNotes = document.createElement('textarea')
     const inputDone = document.createElement('input')
     const saveBtn = document.createElement('button')
+    const delBtn = document.createElement('button')
+    const closeBtn = document.createElement('button')
 
     legend.textContent = `Toto's details`
-    
+
     labelTitle.textContent = 'Title'
     labelTitle.setAttribute('for', 'todo-title')
     inputTitle.value = todo.title
@@ -157,7 +160,7 @@ function generateTodoModal(todo) {
     inputDescription.setAttribute('type', 'text')
     inputDescription.setAttribute('id', 'todo-description')
     inputDescription.setAttribute('name', 'todo-description')
-    
+
     labelDueDate.textContent = 'DueDate'
     labelDueDate.setAttribute('for', 'todo-dueDate')
     inputDueDate.setAttribute('type', 'date')
@@ -196,17 +199,42 @@ function generateTodoModal(todo) {
     inputDone.checked = todo.done === 'true' ? true : false
 
     saveBtn.textContent = 'save'
-
-    saveBtn.addEventListener('click', () => {
+    saveBtn.addEventListener('click', (e) => {
+        e.preventDefault()
 
         const prj = projectsDOM.getSelectedProject()
 
+        todo.title = inputTitle.value
+        todo.description = inputDescription.value
+        todo.dueDate = new Date(inputDueDate.value)
         todo.priority = selectPriority.value
+        todo.notes = inputNotes.value
+        todo.done = inputDone.checked === true ? 'true' : 'false'
         prj.update(todo)
         database.saveProject(prj)
+        todosDOM.updateTodoList()
 
         document.querySelector('dialog').close()
         document.querySelector('dialog').remove()
+    })
+
+    delBtn.textContent = 'delete'
+    delBtn.addEventListener('click', () => {
+        const prj = projectsDOM.getSelectedProject()
+        prj.remove(index)
+        database.saveProject(prj)
+        todosDOM.updateTodoList()
+
+        document.querySelector('dialog').close()
+        document.querySelector('dialog').remove()
+    })
+
+    closeBtn.textContent = 'close'
+    closeBtn.addEventListener('click', () => {
+
+        document.querySelector('dialog').close()
+        document.querySelector('dialog').remove()
+
     })
 
     fieldset.appendChild(legend)
@@ -224,10 +252,17 @@ function generateTodoModal(todo) {
     fieldset.appendChild(inputDone)
 
 
+    form.appendChild(closeBtn)
     form.appendChild(fieldset)
     form.appendChild(saveBtn)
+    form.appendChild(delBtn)
 
     dialog.appendChild(form)
+
+    dialog.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape')
+            closeBtn.click()
+    })
 
     return dialog
 }
