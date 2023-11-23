@@ -198,6 +198,13 @@ function generateTodoModal(todo) {
     saveBtn.textContent = 'save'
 
     saveBtn.addEventListener('click', () => {
+
+        const prj = projectsDOM.getSelectedProject()
+
+        todo.priority = selectPriority.value
+        prj.update(todo)
+        database.saveProject(prj)
+
         document.querySelector('dialog').close()
         document.querySelector('dialog').remove()
     })
