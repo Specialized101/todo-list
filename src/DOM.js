@@ -15,13 +15,27 @@ const projectsDOM = (() => {
 
     function selectProject(li) {
         const lis = Array.from(document.querySelectorAll('#project-list li'))
+        const delProjectBtn = document.querySelector('#del-project')
+        delProjectBtn.src = TrashSign
 
         lis.forEach(item => {
             item.dataset.selected = 'false'
         })
 
+        delProjectBtn.addEventListener('click', () => {
+            database.deleteProject(getSelectedProject())
+            updateProjectList()
+            lis[0].click() // display the default project after delete 
+        })
+
+        
         li.dataset.selected = 'true'
         projectTitle.textContent = `${li.textContent}'s To-Do list`
+        if (getSelectedProject().title === 'Default Project'){
+            delProjectBtn.classList.add('hide')
+        } else {
+            delProjectBtn.classList.remove('hide')
+        }
     }
 
     function getSelectedProject() {
@@ -38,7 +52,6 @@ const projectsDOM = (() => {
         if (index === -1)
             index = 0
 
-        // console.log(database.getProjects()[index])
         return database.getProjects()[index]
     }
 
@@ -63,7 +76,6 @@ const projectsDOM = (() => {
             li.textContent = project.title
             li.addEventListener('click', () => {
                 selectProject(li)
-                console.log(getSelectedProject())
 
                 todosDOM.updateTodoList()
 

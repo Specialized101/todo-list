@@ -31,8 +31,20 @@ body {
     padding: 5px 0px 0px 30px;
 }
 
-h2 {
+#project-info {
     margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#project-info img {
+    width: 30px;
+    height: 30px;
+}
+
+#project-info img:hover {
+    cursor: pointer;
 }
 
 ul {
@@ -121,6 +133,10 @@ li:last-of-type {
 
 .notDone {
     background-color: transparent;
+}
+
+.hide {
+    display: none;
 }
 
 dialog {

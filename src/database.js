@@ -38,9 +38,21 @@ const database = (() => {
         localStorage.setItem('myProjects', JSON.stringify(myProjects))
     }
 
+    function deleteProject(project){
+        const myProjects = getProjects()
+        const projectIndex = myProjects.findIndex(prj => prj.id === project.id)
+
+        if (projectIndex > 0) { // Make sure to not delete non existing project nor default project
+            myProjects.splice(projectIndex, 1)
+        }
+
+        localStorage.setItem('myProjects', JSON.stringify(myProjects))
+    }
+
     return {
         getProjects,
         saveProject,
+        deleteProject
     }
 
 })();

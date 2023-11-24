@@ -1,9 +1,6 @@
 
 import './style.css'
-import { createTodo } from "./todo.js"
-import { createProject } from './project.js'
-import { projectsDOM, todosDOM } from './DOM.js'
-import { database } from './database.js'
+import { projectsDOM } from './DOM.js'
 
 projectsDOM.updateProjectList()
 
