@@ -1,5 +1,11 @@
 import { format } from 'date-fns'
 import { database } from './database.js'
+import { createTodo } from './todo.js'
+import { createProject } from './project.js'
+import PlusSign from './images/plus-sign.png'
+import CloseSign from './images/close.png'
+import TrashSign from './images/trash.png'
+import SaveSign from './images/save.png'
 
 const projectTodos = document.querySelector('#project-todos')
 const projectList = document.querySelector('#project-list')
@@ -15,7 +21,7 @@ const projectsDOM = (() => {
         })
 
         li.dataset.selected = 'true'
-        projectTitle.textContent = li.textContent
+        projectTitle.textContent = `${li.textContent}'s To-Do list`
     }
 
     function getSelectedProject() {
@@ -38,6 +44,20 @@ const projectsDOM = (() => {
 
     function updateProjectList() {
         projectList.replaceChildren()
+
+        const addProject = document.createElement('li')
+        const icon = new Image()
+        icon.src = PlusSign
+        icon.alt = 'Add Project button'
+        addProject.appendChild(icon)
+
+        addProject.addEventListener('click', () => {
+            const newProject = createProject(prompt(`New Project's Title: `))
+            newProject.id = database.getProjects().length
+            database.saveProject(newProject)
+            projectsDOM.updateProjectList()
+        })
+
         database.getProjects().forEach(project => {
             const li = document.createElement('li')
             li.textContent = project.title
@@ -51,6 +71,7 @@ const projectsDOM = (() => {
 
             projectList.appendChild(li)
         })
+        projectList.appendChild(addProject)
     }
 
     return {
@@ -77,13 +98,33 @@ const todosDOM = (() => {
 
 function generateTodoCards(project) {
 
+    const addTodo = document.createElement('div')
+    const icon = new Image()
+    icon.src = PlusSign
+    icon.alt = 'Add todo button'
+    addTodo.appendChild(icon)
+    addTodo.classList.add('todo-card')
+    addTodo.setAttribute('id', 'create-todo')
+
+    addTodo.addEventListener('click', () => {
+        const newTodo = createTodo(prompt('New todo: '))
+        const selectedProject = projectsDOM.getSelectedProject()
+
+        selectedProject.add(newTodo)
+        database.saveProject(selectedProject)
+        todosDOM.updateTodoList()
+    })
+
     project.todos.forEach((todo, index) => {
         const card = document.createElement('div')
-        const cardTitle = document.createElement('p')
+        const title = document.createElement('h3')
+        const dueDate = document.createElement('p')
         const priority = document.createElement('div')
         const done = document.createElement('div')
+        const div1 = document.createElement('div')
 
-        cardTitle.textContent = `${todo.title} - ${format(todo.dueDate, 'yyyy-MM-dd')}`
+        title.textContent = todo.title
+        dueDate.textContent = format(todo.dueDate, 'MMM do yyyy')
 
         priority.classList.add('card-circle')
         switch (todo.priority) {
@@ -99,7 +140,7 @@ function generateTodoCards(project) {
         }
 
         done.classList.add('card-circle')
-        if (todo.done === 'true'){
+        if (todo.done === 'true') {
             done.classList.add('done')
         } else {
             done.classList.add('notDone')
@@ -112,12 +153,17 @@ function generateTodoCards(project) {
 
         card.classList.add('todo-card')
 
-        card.appendChild(cardTitle)
-        card.appendChild(priority)
-        card.appendChild(done)
+        div1.appendChild(dueDate)
+        div1.appendChild(priority)
+        div1.appendChild(done)
+
+        card.appendChild(title)
+        card.appendChild(div1)
 
         projectTodos.appendChild(card)
     })
+
+    projectTodos.appendChild(addTodo)
 
 }
 
@@ -141,9 +187,13 @@ function generateTodoModal(todo, index) {
     const optionHigh = document.createElement('option')
     const inputNotes = document.createElement('textarea')
     const inputDone = document.createElement('input')
-    const saveBtn = document.createElement('button')
-    const delBtn = document.createElement('button')
-    const closeBtn = document.createElement('button')
+    const saveBtn = document.createElement('div')
+    const delBtn = document.createElement('div')
+    const closeBtn = document.createElement('div')
+    const saveIcon = new Image()
+    const delIcon = new Image()
+    const closeIcon = new Image()
+    const actionBtns = document.createElement('div')
 
     legend.textContent = `Toto's details`
 
@@ -198,7 +248,13 @@ function generateTodoModal(todo, index) {
     inputDone.setAttribute('name', 'todo-done')
     inputDone.checked = todo.done === 'true' ? true : false
 
+    
+    saveIcon.src = SaveSign
+    saveIcon.alt = 'Save Todo'
     saveBtn.textContent = 'save'
+    saveBtn.appendChild(saveIcon)
+    saveBtn.classList.add('dialog-btn')
+    
     saveBtn.addEventListener('click', (e) => {
         e.preventDefault()
 
@@ -218,7 +274,12 @@ function generateTodoModal(todo, index) {
         document.querySelector('dialog').remove()
     })
 
+    delIcon.src = TrashSign
+    delIcon.alt = 'Delete Todo'
     delBtn.textContent = 'delete'
+    delBtn.appendChild(delIcon)
+    delBtn.classList.add('dialog-btn')
+
     delBtn.addEventListener('click', () => {
         const prj = projectsDOM.getSelectedProject()
         prj.remove(index)
@@ -229,7 +290,10 @@ function generateTodoModal(todo, index) {
         document.querySelector('dialog').remove()
     })
 
-    closeBtn.textContent = 'close'
+    closeIcon.src = CloseSign
+    closeIcon.alt = 'Close Todo'
+    closeBtn.appendChild(closeIcon)
+
     closeBtn.addEventListener('click', () => {
 
         document.querySelector('dialog').close()
@@ -251,11 +315,13 @@ function generateTodoModal(todo, index) {
     fieldset.appendChild(labelDone)
     fieldset.appendChild(inputDone)
 
+    actionBtns.classList.add('dialog-action-btns')
+    actionBtns.appendChild(saveBtn)
+    actionBtns.appendChild(delBtn)
 
     form.appendChild(closeBtn)
     form.appendChild(fieldset)
-    form.appendChild(saveBtn)
-    form.appendChild(delBtn)
+    form.appendChild(actionBtns)
 
     dialog.appendChild(form)
 

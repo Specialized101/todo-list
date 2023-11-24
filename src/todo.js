@@ -1,10 +1,11 @@
 
 function* generateId() {
-    let id = 0
+    let id = parseInt(localStorage.getItem('todoLastId')) + 1 || 0
 
     while (true){
         yield id
         id++
+        localStorage.setItem('todoLastId', id)
     }
 }
 
